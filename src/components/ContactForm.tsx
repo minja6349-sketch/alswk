@@ -28,10 +28,26 @@ export default function ContactForm() {
   const onSubmit = async (data: ContactFormData) => {
     setIsSubmitting(true);
     try {
+      // 1. Save to Firestore (Internal Admin Panel)
       await addDoc(collection(db, 'inquiries'), {
         ...data,
         createdAt: serverTimestamp(),
       });
+
+      // 2. Submit to Formspree (External Collection/Email)
+      const response = await fetch('https://formspree.io/f/mlgojggp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+
+      if (!response.ok) {
+        throw new Error('Formspree submission failed');
+      }
+
       setIsSuccess(true);
       reset();
       setTimeout(() => setIsSuccess(false), 5000);

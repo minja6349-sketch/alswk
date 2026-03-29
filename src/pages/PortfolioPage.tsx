@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { motion, AnimatePresence } from 'motion/react';
 import { ExternalLink, Filter } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -14,6 +14,8 @@ export default function PortfolioPage() {
     const q = query(collection(db, 'portfolio'), orderBy('order', 'asc'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       setItems(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, 'portfolio');
     });
     return unsubscribe;
   }, []);

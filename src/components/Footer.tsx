@@ -45,21 +45,27 @@ export default function Footer() {
           </div>
 
           <div>
-            <h3 className="text-white font-semibold mb-6">문의하기</h3>
-            <ul className="space-y-4">
-              <li className="flex items-center space-x-3 text-gray-400">
-                <Mail className="w-4 h-4 text-purple-500" />
-                <span>{settings?.contactEmail || 'contact@sangsang.com'}</span>
-              </li>
-              <li className="flex items-center space-x-3 text-gray-400">
-                <Phone className="w-4 h-4 text-purple-500" />
-                <span>010-1234-5678</span>
-              </li>
-              <li className="flex items-center space-x-3 text-gray-400">
-                <MapPin className="w-4 h-4 text-purple-500" />
-                <span>서울특별시 강남구 테헤란로</span>
-              </li>
-            </ul>
+            <h3 className="text-white font-semibold mb-6">뉴스레터 구독</h3>
+            <p className="text-gray-400 text-sm mb-4">최신 디자인 트렌드와 소식을 받아보세요.</p>
+            <form 
+              action="https://formspree.io/f/mlgojggp" 
+              method="POST"
+              className="flex flex-col space-y-2"
+            >
+              <input 
+                type="email" 
+                name="email"
+                placeholder="이메일 주소" 
+                required
+                className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:border-purple-500 outline-none transition-colors"
+              />
+              <button 
+                type="submit"
+                className="bg-purple-600 text-white text-sm font-bold py-2 rounded-xl hover:bg-purple-700 transition-colors"
+              >
+                구독하기
+              </button>
+            </form>
           </div>
         </div>
         <div className="border-t border-white/5 pt-8 text-center text-gray-500 text-sm">

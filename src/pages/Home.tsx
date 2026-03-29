@@ -1,8 +1,8 @@
 import Hero from '../components/Hero';
 import { motion } from 'motion/react';
 import { useEffect, useState } from 'react';
-import { collection, query, limit, getDocs, orderBy } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { collection, query, limit, getDocs, orderBy, where } from 'firebase/firestore';
+import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ExternalLink } from 'lucide-react';
 import ContactForm from '../components/ContactForm';
@@ -14,10 +14,27 @@ export default function Home() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const portfolioSnap = await getDocs(query(collection(db, 'portfolio'), limit(3)));
+        let portfolioSnap;
+        try {
+          portfolioSnap = await getDocs(query(collection(db, 'portfolio'), limit(3)));
+        } catch (err) {
+          handleFirestoreError(err, OperationType.GET, 'portfolio');
+          return;
+        }
         setPortfolio(portfolioSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
 
-        const postsSnap = await getDocs(query(collection(db, 'posts'), orderBy('createdAt', 'desc'), limit(3)));
+        let postsSnap;
+        try {
+          postsSnap = await getDocs(query(
+            collection(db, 'posts'), 
+            where('published', '==', true),
+            orderBy('createdAt', 'desc'), 
+            limit(3)
+          ));
+        } catch (err) {
+          handleFirestoreError(err, OperationType.GET, 'posts');
+          return;
+        }
         setPosts(postsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       } catch (error) {
         console.error("Error fetching homepage data:", error);

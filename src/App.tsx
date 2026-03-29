@@ -6,6 +6,7 @@ import { auth, db } from './lib/firebase';
 import { HelmetProvider } from 'react-helmet-async';
 import { Toaster } from 'sonner';
 import { initializeSampleData } from './lib/sampleData';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Components
 import Navbar from './components/Navbar';
@@ -74,9 +75,6 @@ export default function App() {
   const [settings, setSettings] = useState<SiteSettings | null>(null);
 
   useEffect(() => {
-    // Initialize sample data if needed
-    initializeSampleData();
-
     const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
@@ -85,6 +83,9 @@ export default function App() {
         const userDocRef = doc(db, 'users', currentUser.uid);
         const userDoc = await getDoc(userDocRef);
         
+        const adminStatus = isAdminEmail || userDoc.data()?.role === 'admin';
+        setIsAdmin(adminStatus);
+
         if (!userDoc.exists()) {
           await setDoc(userDocRef, {
             email: currentUser.email,
@@ -93,8 +94,11 @@ export default function App() {
             createdAt: new Date().toISOString(),
           });
         }
-        
-        setIsAdmin(isAdminEmail || userDoc.data()?.role === 'admin');
+
+        // Initialize sample data if admin
+        if (adminStatus) {
+          initializeSampleData();
+        }
       } else {
         setIsAdmin(false);
       }
@@ -126,27 +130,29 @@ export default function App() {
 
   return (
     <HelmetProvider>
-      <AuthContext.Provider value={{ user, isAdmin, loading, settings }}>
-        <Router>
-          <div className="min-h-screen bg-black text-white selection:bg-purple-500/30">
-            <Navbar />
-            <div className="pt-16">
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/portfolio" element={<PortfolioPage />} />
-                <Route path="/blog" element={<Blog />} />
-                <Route path="/blog/:id" element={<PostDetail />} />
-                <Route 
-                  path="/admin/*" 
-                  element={isAdmin ? <Admin /> : <Navigate to="/" />} 
-                />
-              </Routes>
+      <ErrorBoundary>
+        <AuthContext.Provider value={{ user, isAdmin, loading, settings }}>
+          <Router>
+            <div className="min-h-screen bg-black text-white selection:bg-purple-500/30">
+              <Navbar />
+              <div className="pt-16">
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/portfolio" element={<PortfolioPage />} />
+                  <Route path="/blog" element={<Blog />} />
+                  <Route path="/blog/:id" element={<PostDetail />} />
+                  <Route 
+                    path="/admin/*" 
+                    element={isAdmin ? <Admin /> : <Navigate to="/" />} 
+                  />
+                </Routes>
+              </div>
+              <Footer />
+              <Toaster position="top-right" theme="dark" richColors />
             </div>
-            <Footer />
-            <Toaster position="top-right" theme="dark" richColors />
-          </div>
-        </Router>
-      </AuthContext.Provider>
+          </Router>
+        </AuthContext.Provider>
+      </ErrorBoundary>
     </HelmetProvider>
   );
 }

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { motion } from 'motion/react';
 import { Calendar, User, ArrowLeft, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -14,11 +14,22 @@ export default function PostDetail() {
   useEffect(() => {
     const fetchPost = async () => {
       if (!id) return;
-      const docSnap = await getDoc(doc(db, 'posts', id));
-      if (docSnap.exists()) {
-        setPost({ id: docSnap.id, ...docSnap.data() });
+      try {
+        let docSnap;
+        try {
+          docSnap = await getDoc(doc(db, 'posts', id));
+        } catch (err) {
+          handleFirestoreError(err, OperationType.GET, `posts/${id}`);
+          return;
+        }
+        if (docSnap.exists()) {
+          setPost({ id: docSnap.id, ...docSnap.data() });
+        }
+      } catch (error) {
+        console.error("Error fetching post:", error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     fetchPost();
   }, [id]);
