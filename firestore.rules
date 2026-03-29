@@ -1,0 +1,108 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    // Collection: posts
+    //   - title: string (required)
+    //   - content: string (required)
+    //   - excerpt: string
+    //   - category: string
+    //   - thumbnail: string
+    //   - author: string
+    //   - authorId: string (required)
+    //   - createdAt: timestamp (required)
+    //   - updatedAt: timestamp
+    //   - published: bool
+    //
+    // Collection: settings
+    //   - siteName: string
+    //   - siteDescription: string
+    //   - primaryColor: string
+    //   - secondaryColor: string
+    //   - fontFamily: string
+    //   - logoUrl: string
+    //   - heroTitle: string
+    //   - heroSubtitle: string
+    //   - contactEmail: string
+    //   - socialLinks: map
+    //
+    // Collection: portfolio
+    //   - title: string (required)
+    //   - description: string
+    //   - imageUrl: string (required)
+    //   - category: string (required)
+    //   - link: string
+    //   - order: int
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+        (request.auth.token.email == "minja6349@gmail.com" && request.auth.token.email_verified == true)
+      );
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidPost(data) {
+      return data.keys().hasAll(['title', 'content', 'authorId', 'createdAt']) &&
+             data.title is string && data.title.size() > 0 && data.title.size() < 200 &&
+             data.content is string && data.content.size() > 0 &&
+             data.authorId == request.auth.uid;
+    }
+
+    function isValidPortfolio(data) {
+      return data.keys().hasAll(['title', 'imageUrl', 'category']) &&
+             data.title is string && data.title.size() > 0 &&
+             data.imageUrl is string &&
+             data.category is string;
+    }
+
+    function isValidInquiry(data) {
+      return data.keys().hasAll(['name', 'email', 'phone', 'message', 'createdAt']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.email is string && data.email.size() > 0 &&
+             data.phone is string && data.phone.size() > 0 &&
+             data.message is string && data.message.size() > 0 && data.message.size() < 5000;
+    }
+
+    // Rules
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId) || isAdmin();
+    }
+
+    match /posts/{postId} {
+      allow read: if resource.data.published == true || isAdmin();
+      allow create: if isAdmin() && isValidPost(request.resource.data);
+      allow update: if isAdmin() && isValidPost(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /portfolio/{workId} {
+      allow read: if true;
+      allow create: if isAdmin() && isValidPortfolio(request.resource.data);
+      allow update: if isAdmin() && isValidPortfolio(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /inquiries/{inquiryId} {
+      allow read, delete: if isAdmin();
+      allow create: if isValidInquiry(request.resource.data);
+    }
+  }
+}

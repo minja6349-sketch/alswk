@@ -1,0 +1,79 @@
+{
+  "entities": {
+    "posts": {
+      "title": "게시글",
+      "description": "블로그 포스트 및 공지사항",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "제목" },
+        "content": { "type": "string", "description": "내용 (HTML/Markdown)" },
+        "excerpt": { "type": "string", "description": "요약" },
+        "category": { "type": "string", "description": "카테고리" },
+        "thumbnail": { "type": "string", "description": "썸네일 이미지 URL" },
+        "author": { "type": "string", "description": "작성자 이름" },
+        "authorId": { "type": "string", "description": "작성자 UID" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "생성일" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "수정일" },
+        "published": { "type": "boolean", "description": "공개 여부" }
+      },
+      "required": ["title", "content", "authorId", "createdAt"]
+    },
+    "settings": {
+      "title": "사이트 설정",
+      "description": "웹사이트 전반의 디자인 및 메타 정보",
+      "type": "object",
+      "properties": {
+        "siteName": { "type": "string", "description": "사이트 이름" },
+        "siteDescription": { "type": "string", "description": "사이트 설명" },
+        "primaryColor": { "type": "string", "description": "주요 포인트 컬러 (Hex)" },
+        "secondaryColor": { "type": "string", "description": "보조 컬러 (Hex)" },
+        "fontFamily": { "type": "string", "description": "기본 폰트" },
+        "logoUrl": { "type": "string", "description": "로고 이미지 URL" },
+        "heroTitle": { "type": "string", "description": "히어로 섹션 제목" },
+        "heroSubtitle": { "type": "string", "description": "히어로 섹션 부제목" },
+        "contactEmail": { "type": "string", "description": "문의 이메일" },
+        "socialLinks": {
+          "type": "object",
+          "properties": {
+            "instagram": { "type": "string" },
+            "facebook": { "type": "string" },
+            "twitter": { "type": "string" }
+          }
+        }
+      }
+    },
+    "portfolio": {
+      "title": "포트폴리오",
+      "description": "제작된 로고 및 웹사이트 작업물",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "작업물 제목" },
+        "description": { "type": "string", "description": "작업 상세 설명" },
+        "imageUrl": { "type": "string", "description": "대표 이미지 URL" },
+        "category": { "type": "string", "description": "카테고리 (로고/웹사이트)" },
+        "link": { "type": "string", "description": "관련 링크" },
+        "order": { "type": "integer", "description": "정렬 순서" }
+      },
+      "required": ["title", "imageUrl", "category"]
+    },
+    "inquiries": {
+      "title": "문의사항",
+      "description": "고객 문의 메시지",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "이름" },
+        "email": { "type": "string", "description": "이메일" },
+        "phone": { "type": "string", "description": "핸드폰 번호" },
+        "message": { "type": "string", "description": "문의 내용" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "문의 일시" }
+      },
+      "required": ["name", "email", "phone", "message", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/posts/{postId}": { "schema": "posts", "description": "게시글 데이터" },
+    "/settings/global": { "schema": "settings", "description": "전역 사이트 설정" },
+    "/portfolio/{workId}": { "schema": "portfolio", "description": "포트폴리오 데이터" },
+    "/inquiries/{inquiryId}": { "schema": "inquiries", "description": "고객 문의 데이터" }
+  }
+}
